@@ -1,0 +1,17 @@
+project/
+├── vercel.json
+├── public/
+│   ├── viewer.html
+│   ├── admin.html
+│   ├── history.html
+│   ├── style.css
+│   ├── viewer.js
+│   ├── admin.js
+│   └── history.js
+└── api/
+    ├── login.js
+    ├── items.js
+    ├── history.js
+    └── _lib/
+        ├── github.js
+        └── auth.js
