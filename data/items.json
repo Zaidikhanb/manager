@@ -1,5 +1,12 @@
 [
   {
+    "id": "mpgnaxxtpc731",
+    "name": "New Item",
+    "number": "1033C",
+    "quantity": 10,
+    "status": "reserved"
+  },
+  {
     "id": "mpgnafg93ri00",
     "name": "New Item",
     "number": "1033B",
