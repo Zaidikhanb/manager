@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "mpgn96ngda46p",
+    "name": "New Item",
+    "number": "1033",
+    "quantity": 1,
+    "status": "available"
+  }
+]
