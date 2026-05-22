@@ -1,5 +1,12 @@
 [
   {
+    "timestamp": "2026-05-22T09:18:14.794Z",
+    "action": "updated",
+    "itemId": "mpgphlusn8fct",
+    "itemName": "Zaid Ashiq",
+    "details": "status: \"available\" → \"used\""
+  },
+  {
     "timestamp": "2026-05-22T09:18:12.258Z",
     "action": "added",
     "itemId": "mpgpipzimrzcs",
