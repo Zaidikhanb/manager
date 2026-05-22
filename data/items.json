@@ -1,5 +1,12 @@
 [
   {
+    "id": "mpgn9w4le4kpa",
+    "name": "New Item",
+    "number": "1033A",
+    "quantity": 1,
+    "status": "defective"
+  },
+  {
     "id": "mpgn96ngda46p",
     "name": "New Item",
     "number": "1033",
