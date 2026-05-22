@@ -1,5 +1,12 @@
 [
   {
+    "id": "mpgnafg93ri00",
+    "name": "New Item",
+    "number": "1033B",
+    "quantity": 1,
+    "status": "used"
+  },
+  {
     "id": "mpgn9w4le4kpa",
     "name": "New Item",
     "number": "1033A",
