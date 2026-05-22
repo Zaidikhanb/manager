@@ -1,3 +1,21 @@
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('Service Worker registered with scope:', registration.scope);
+      })
+      .catch((error) => {
+        console.error('Service Worker registration failed:', error);
+      });
+  });
+}
+
+let items = [];
+let currentSection = 'all';
+let collapsedSections = {};
+
+// ... rest of your existing viewer.js code follows here
 let items = [];
 let currentSection = 'all';
 let collapsedSections = {};
