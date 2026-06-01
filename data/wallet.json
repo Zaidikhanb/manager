@@ -2,6 +2,13 @@
   "balance": 0,
   "transactions": [
     {
+      "id": "mpvgopokcg7cq",
+      "timestamp": "2026-06-01T17:07:26.852Z",
+      "type": "used",
+      "party": "SOAP",
+      "amount": 60
+    },
+    {
       "id": "mpvgoh3x031no",
       "timestamp": "2026-06-01T17:07:15.741Z",
       "type": "used",
