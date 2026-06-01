@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>StockFlow · Smart Inventory</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0f1119;
+      --surface: #1a1d28;
+      --surface2: #222634;
+      --surface3: #2a2e3c;
+      --text: #e2e4ec;
+      --text2: #a8adbd;
+      --text3: #787d8c;
+      --accent: #6c5ce7;
+      --accent-glow: rgba(108,92,231,0.35);
+      --green: #00d2a0;
+      --blue: #4dabf7;
+      --purple: #b197fc;
+      --orange: #ff9f43;
+      --red: #ff6b6b;
+      --yellow: #ffd43b;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+      --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html, body {
+      width: 100%;
+      min-width: 1000px;
+      overflow-x: auto;
+      font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 1440px;
+      background: var(--bg);
+    }
+
+    /* top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 16px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 420px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--text3);
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 10px 16px 10px 42px;
+      background: var(--surface2);
+      border: 1px solid transparent;
+      border-radius: 30px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(108,92,231,0.2);
+    }
+
+    /* professional filter button + dropdown */
+    .filter-dropdown {
+      position: relative;
+    }
+
+    .filter-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 18px;
+      background: var(--surface2);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 40px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .filter-btn:hover {
+      background: var(--surface3);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .filter-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .active-filter-badge {
+      background: var(--accent);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+
+    /* dropdown menu */
+    .filter-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      background: var(--surface);
+      backdrop-filter: blur(12px);
+      background: rgba(26, 29, 40, 0.98);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+      min-width: 240px;
+      box-shadow: var(--shadow-lg);
+      z-index: 100;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-8px);
+      transition: opacity 0.2s, visibility 0.2s, transform 0.2s;
+    }
+
+    .filter-menu.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .filter-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text3);
+    }
+
+    .filter-options {
+      padding: 8px 0;
+    }
+
+    .filter-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-size: 13px;
+      gap: 12px;
+    }
+
+    .filter-option:hover {
+      background: var(--surface2);
+    }
+
+    .filter-option.active {
+      background: rgba(108,92,231,0.12);
+      color: white;
+      border-left: 3px solid var(--accent);
+    }
+
+    .option-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .option-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .option-count {
+      font-size: 12px;
+      color: var(--text3);
+      background: var(--surface2);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .filter-option.active .option-count {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* main content */
+    .content {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .header-text h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      background: linear-gradient(135deg, #ffffff, #b6b9d0);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .header-text p {
+      color: var(--text3);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    /* unified table */
+    .unified-table-container {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.05);
+      overflow: hidden;
+      width: 100%;
+      transition: all 0.2s;
+    }
+
+    .table-header {
+      padding: 14px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .table-header h3 {
+      font-size: 15px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .current-filter-tag {
+      background: var(--surface2);
+      border-radius: 30px;
+      padding: 4px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--accent);
+    }
+
+    .item-counter {
+      font-size: 12px;
+      color: var(--text3);
+      background: var(--surface2);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .inventory-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .inventory-table thead th {
+      background: var(--surface2);
+      padding: 12px 18px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text3);
+      position: sticky;
+      top: 0;
+      background: var(--surface3);
+      z-index: 2;
+    }
+
+    .inventory-table tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: var(--transition);
+    }
+
+    .inventory-table tbody tr:hover {
+      background: var(--surface2);
+    }
+
+    .inventory-table td {
+      padding: 14px 18px;
+      vertical-align: middle;
+    }
+
+    .item-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .item-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+      background: rgba(108,92,231,0.2);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 24px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-available   { background: rgba(0,210,160,0.12); color: var(--green); }
+    .status-used        { background: rgba(77,171,247,0.12); color: var(--blue); }
+    .status-installed   { background: rgba(177,151,252,0.12); color: var(--purple); }
+    .status-reserved    { background: rgba(255,159,67,0.12); color: var(--orange); }
+    .status-defective   { background: rgba(255,107,107,0.12); color: var(--red); }
+    .status-short       { background: rgba(255,212,59,0.15); color: var(--yellow); }
+
+    .qty-warning {
+      color: var(--yellow);
+      font-weight: 800;
+      animation: softPulse 1.8s infinite;
+    }
+
+    @keyframes softPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .empty-row td {
+      text-align: center;
+      padding: 52px 20px;
+      color: var(--text3);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(108,92,231,0.2);
+      border-left-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden {
+      display: none;
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+      background: var(--surface2);
+      border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: var(--text3);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <main class="main">
+    <header class="topbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="globalSearch" placeholder="Search by name or serial...">
+      </div>
+
+      <!-- Professional option button (filter dropdown) -->
+      <div class="filter-dropdown" id="filterDropdown">
+        <div class="filter-btn" id="filterBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="22 3 2 3 10 13 10 21 14 18 14 13 22 3"/>
+          </svg>
+          <span>Filter by status</span>
+          <span id="activeFilterBadge" class="active-filter-badge">All</span>
+        </div>
+        <div class="filter-menu" id="filterMenu">
+          <div class="filter-header">SELECT CATEGORY</div>
+          <div class="filter-options" id="filterOptionsList">
+            <!-- dynamic options will be injected here -->
+            <div class="filter-option" data-filter-key="all">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="content">
+      <div class="header-text">
+        <h1>📋 StockFlow Inventory</h1>
+        <p>Smart filtering · One click to view items by category</p>
+      </div>
+
+      <!-- Single unified table -->
+      <div class="unified-table-container">
+        <div class="table-header">
+          <h3>
+            <span>📦 Current assets</span>
+            <span class="current-filter-tag" id="activeFilterLabel">All items</span>
+          </h3>
+          <span class="item-counter" id="itemCounter">0 items</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="inventory-table">
+            <thead>
+              <tr><th>Item name</th><th>Serial / Number</th><th>Quantity</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="4" style="text-align:center; padding:48px;"><div class="spinner"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ---------- INVENTORY DATA ----------
+  let inventoryItems = [];
+  let activeFilterKey = 'all';        // 'all', 'available', 'used', 'installed', 'reserved', 'defective', 'short'
+  
+  // ---------- Generate realistic inventory ----------
+  function generateInventoryDataset() {
+    const statuses = ['available', 'used', 'installed', 'reserved', 'defective', 'short'];
+    const productBase = [
+      "Logitech Master MX", "Keychron K8 Pro", "CalDigit TS4 Dock", "Dell U2723QE", "Humanscale Monitor Arm",
+      "Sony WH-1000XM5", "Logitech Brio 4K", "Samsung 990 Pro 2TB", "Anker 737 Charger", "Grovemade Desk Mat",
+      "Belkin UltraHD HDMI", "Blue Yeti X", "SanDisk Extreme SSD", "TP-Link USB Adapter", "Wacom Intuos Pro"
+    ];
+    const items = [];
+    let idCounter = 1;
+    // generate approx 78 items with mixed statuses
+    for (let i = 0; i < 78; i++) {
+      let status = statuses[i % statuses.length];
+      let quantity = Math.floor(Math.random() * 45) + 1;
+      if (status === 'short') quantity = Math.floor(Math.random() * 6) + 1;
+      if (status === 'defective') quantity = Math.floor(Math.random() * 3) + 1;
+      const product = productBase[i % productBase.length];
+      const version = Math.floor(i / 12) + 1;
+      const name = `${product} ${version > 1 ? `Elite v${version}` : ''}`.trim();
+      const serial = `SFL-${String(5000 + i).slice(-4)}${String.fromCharCode(65 + (i % 26))}`;
+      items.push({
+        id: idCounter++,
+        name: name,
+        number: serial,
+        quantity: quantity,
+        status: status,
+        displayStatus: status,
+        isShort: (status === 'short' && quantity < 5) || (status !== 'short' && quantity === 1 && i % 13 === 0)
+      });
+    }
+    // specific high-value examples
+    items.push({ id: 901, name: "Nebula Capsule Projector", number: "PROJ-CAPSULE", quantity: 2, status: "short", displayStatus: "short", isShort: true });
+    items.push({ id: 902, name: "Steelcase Gesture Chair", number: "CHAIR-GEST", quantity: 8, status: "available", displayStatus: "available", isShort: false });
+    items.push({ id: 903, name: "Cisco Webex Speaker", number: "SPKR-EX", quantity: 1, status: "defective", displayStatus: "defective", isShort: false });
+    items.push({ id: 904, name: "iPad Air (M1)", number: "IPAD-AIR5", quantity: 6, status: "reserved", displayStatus: "reserved", isShort: false });
+    items.push({ id: 905, name: "Surface Laptop Studio", number: "SUR-LAP", quantity: 3, status: "used", displayStatus: "used", isShort: false });
+    items.push({ id: 906, name: "Philips Hue Bridge", number: "HUE-BRIDGE", quantity: 14, status: "installed", displayStatus: "installed", isShort: false });
+    return items;
+  }
+
+  // fetch with fallback
+  async function loadInventory() {
+    const tbody = document.getElementById('tableBody');
+    if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:48px;"><div class="spinner"></div></td></tr>`;
+    try {
+      const res = await fetch('/api/items');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      inventoryItems = Array.isArray(data) && data.length ? data : generateInventoryDataset();
+    } catch (err) {
+      console.warn("Using dynamic inventory dataset");
+      inventoryItems = generateInventoryDataset();
+    }
+    renderFilterMenuOptions();    // build dropdown with counts
+    renderInventoryTable();       // show table with active filter "all"
+  }
+
+  // get counts per category for dropdown
+  function getCategoryCounts() {
+    const counts = {
+      all: inventoryItems.length,
+      available: 0,
+      used: 0,
+      installed: 0,
+      reserved: 0,
+      defective: 0,
+      short: 0
+    };
+    inventoryItems.forEach(item => {
+      const st = item.displayStatus || item.status;
+      if (counts[st] !== undefined) counts[st]++;
+    });
+    return counts;
+  }
+
+  // icons for each filter option
+  function getOptionIcon(type) {
+    const iconMap = {
+      all: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>`,
+      available: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>`,
+      used: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>`,
+      installed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+      reserved: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>`,
+      defective: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+      short: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
+    };
+    return iconMap[type] || iconMap.all;
+  }
+
+  function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m]));
+  }
+
+  // build dropdown menu items with counts and active state
+  function renderFilterMenuOptions() {
+    const counts = getCategoryCounts();
+    const categories = [
+      { key: 'all', label: 'All items', icon: 'all' },
+      { key: 'available', label: 'Available', icon: 'available' },
+      { key: 'used', label: 'In Use', icon: 'used' },
+      { key: 'installed', label: 'Installed', icon: 'installed' },
+      { key: 'reserved', label: 'Reserved', icon: 'reserved' },
+      { key: 'defective', label: 'Defective', icon: 'defective' },
+      { key: 'short', label: 'Low Stock', icon: 'short' }
+    ];
+    
+    const container = document.getElementById('filterOptionsList');
+    if (!container) return;
+    
+    const optionsHtml = categories.map(cat => {
+      const count = counts[cat.key] || 0;
+      const isActive = (activeFilterKey === cat.key);
+      return `
+        <div class="filter-option ${isActive ? 'active' : ''}" data-filter-key="${cat.key}">
+          <div class="option-left">
+            <div class="option-icon">${getOptionIcon(cat.icon)}</div>
+            <span>${cat.label}</span>
+          </div>
+          <div class="option-count">${count}</div>
+        </div>
+      `;
+    }).join('');
+    
+    container.innerHTML = optionsHtml;
+    
+    // attach click handlers to each option
+    document.querySelectorAll('.filter-option').forEach(opt => {
+      opt.addEventListener('click', (e) => {
+        const filterKey = opt.getAttribute('data-filter-key');
+        if (filterKey) {
+          activeFilterKey = filterKey;
+          // update UI badges
+          updateFilterUI();
+          renderFilterMenuOptions();        // re-render to update active highlight
+          renderInventoryTable();           // refresh table with new filter
+          closeDropdown();                  // auto-close after selection (professional)
+        }
+      });
+    });
+  }
+  
+  function updateFilterUI() {
+    const activeBadge = document.getElementById('activeFilterBadge');
+    const activeLabelSpan = document.getElementById('activeFilterLabel');
+    let displayName = 'All';
+    let labelText = 'All items';
+    switch(activeFilterKey) {
+      case 'all': displayName = 'All'; labelText = 'All items'; break;
+      case 'available': displayName = 'Available'; labelText = 'Available'; break;
+      case 'used': displayName = 'In Use'; labelText = 'In Use'; break;
+      case 'installed': displayName = 'Installed'; labelText = 'Installed'; break;
+      case 'reserved': displayName = 'Reserved'; labelText = 'Reserved'; break;
+      case 'defective': displayName = 'Defective'; labelText = 'Defective'; break;
+      case 'short': displayName = 'Low Stock'; labelText = 'Low Stock'; break;
+    }
+    if (activeBadge) activeBadge.innerText = displayName;
+    if (activeLabelSpan) activeLabelSpan.innerText = labelText;
+  }
+  
+  // filter items based on activeFilterKey + search term
+  function getFilteredItems() {
+    const searchTerm = document.getElementById('globalSearch')?.value.toLowerCase().trim() || '';
+    let filtered = [...inventoryItems];
+    if (activeFilterKey !== 'all') {
+      filtered = filtered.filter(item => (item.displayStatus || item.status) === activeFilterKey);
+    }
+    if (searchTerm) {
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(searchTerm) || 
+        (item.number && item.number.toLowerCase().includes(searchTerm))
+      );
+    }
+    return filtered;
+  }
+  
+  function renderInventoryTable() {
+    const filtered = getFilteredItems();
+    const tbody = document.getElementById('tableBody');
+    const counterSpan = document.getElementById('itemCounter');
+    if (counterSpan) counterSpan.innerText = `${filtered.length} item(s)`;
+    
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="4">✨ No items match the selected filter or search. Try another category ✨</td></tr>`;
+      return;
+    }
+    
+    let rows = '';
+    for (const item of filtered) {
+      const statusKey = item.displayStatus || item.status;
+      let statusClass = '';
+      if (statusKey === 'available') statusClass = 'status-available';
+      else if (statusKey === 'used') statusClass = 'status-used';
+      else if (statusKey === 'installed') statusClass = 'status-installed';
+      else if (statusKey === 'reserved') statusClass = 'status-reserved';
+      else if (statusKey === 'defective') statusClass = 'status-defective';
+      else if (statusKey === 'short') statusClass = 'status-short';
+      else statusClass = 'status-available';
+      
+      const warningClass = (item.isShort || (statusKey === 'short' && item.quantity < 5)) ? 'qty-warning' : '';
+      const qtyDisplay = `${item.isShort ? '⚠ ' : ''}${item.quantity}`;
+      const firstLetter = item.name.charAt(0).toUpperCase();
+      
+      rows += `
+        <tr>
+          <td>
+            <div class="item-name-cell">
+              <div class="item-avatar">${escapeHtml(firstLetter)}</div>
+              <strong>${escapeHtml(item.name)}</strong>
+            </div>
+          </td>
+          <td>${escapeHtml(item.number || '—')}</td>
+          <td><span class="${warningClass}">${escapeHtml(qtyDisplay)}</span></td>
+          <td><span class="status-badge ${statusClass}">● ${capitalize(statusKey)}</span></td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = rows;
+  }
+  
+  // ----- Dropdown behaviour (open/close) -----
+  function initDropdown() {
+    const filterBtn = document.getElementById('filterBtn');
+    const filterMenu = document.getElementById('filterMenu');
+    if (!filterBtn || !filterMenu) return;
+    
+    filterBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = filterMenu.classList.contains('open');
+      if (isOpen) {
+        closeDropdown();
+      } else {
+        openDropdown();
+      }
+    });
+    
+    // close if click outside
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('filterDropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+  }
+  
+  function openDropdown() {
+    const menu = document.getElementById('filterMenu');
+    if (menu) menu.classList.add('open');
+  }
+  
+  function closeDropdown() {
+    const menu = document.getElementById('filterMenu');
+    if (menu) menu.classList.remove('open');
+  }
+  
+  // search event binding
+  function bindSearch() {
+    const searchInput = document.getElementById('globalSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        renderInventoryTable();
+      });
+    }
+  }
+  
+  // initial load and updates
+  async function init() {
+    await loadInventory();
+    initDropdown();
+    bindSearch();
+    updateFilterUI();
+  }
+  
+  init();
+</script>
+</body>
+</html>
