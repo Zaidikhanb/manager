@@ -2,6 +2,13 @@
   "balance": 0,
   "transactions": [
     {
+      "id": "mpvgo39onhu87",
+      "timestamp": "2026-06-01T17:06:57.804Z",
+      "type": "used",
+      "party": "WATER",
+      "amount": 150
+    },
+    {
       "id": "mpvgmokz07r4d",
       "timestamp": "2026-06-01T17:05:52.115Z",
       "type": "received",
