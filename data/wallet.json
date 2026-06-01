@@ -1,4 +1,12 @@
 {
   "balance": 0,
-  "transactions": []
+  "transactions": [
+    {
+      "id": "mpvglo2ni1vre",
+      "timestamp": "2026-06-01T17:05:04.799Z",
+      "type": "received",
+      "party": "FAREED SAHAB",
+      "amount": 1000
+    }
+  ]
 }
