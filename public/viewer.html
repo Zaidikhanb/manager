@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>StockFlow · Interactive Inventory Table</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #0f1119;
+      --surface: #1a1d28;
+      --surface2: #222634;
+      --surface3: #2a2e3c;
+      --text: #e2e4ec;
+      --text2: #a8adbd;
+      --text3: #787d8c;
+      --accent: #6c5ce7;
+      --green: #00d2a0;
+      --blue: #4dabf7;
+      --purple: #b197fc;
+      --orange: #ff9f43;
+      --red: #ff6b6b;
+      --yellow: #ffd43b;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.3);
+      --shadow-lg: 0 12px 48px rgba(0,0,0,0.45);
+      --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    html, body {
+      width: 100%;
+      min-width: 1000px;
+      overflow-x: auto;
+      font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 1440px;
+      background: var(--bg);
+    }
+
+    /* top bar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 28px;
+      background: var(--surface);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 480px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      color: var(--text3);
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 11px 16px 11px 42px;
+      background: var(--surface2);
+      border: 1px solid transparent;
+      border-radius: 30px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(108,92,231,0.1);
+    }
+
+    .content {
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .page-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      background: linear-gradient(135deg, #ffffff, #b6b9d0);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      display: inline-block;
+    }
+
+    .page-subtitle {
+      color: var(--text3);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+
+    /* stats cards row (category filter buttons) */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 14px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.04);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      background: var(--surface2);
+    }
+
+    .stat-card.active-section {
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 20px rgba(108,92,231,0.3);
+      background: rgba(108,92,231,0.08);
+    }
+
+    .stat-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
+
+    .stat-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-top: 4px;
+    }
+
+    /* single unified table container */
+    .unified-table-container {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.05);
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .table-header {
+      padding: 16px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .table-header h3 {
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .category-badge {
+      background: var(--surface2);
+      border-radius: 30px;
+      padding: 4px 12px;
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      max-height: 620px;
+      overflow-y: auto;
+    }
+
+    .inventory-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .inventory-table thead th {
+      background: var(--surface2);
+      padding: 12px 18px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text3);
+      position: sticky;
+      top: 0;
+      background: var(--surface3);
+      z-index: 2;
+    }
+
+    .inventory-table tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: var(--transition);
+    }
+
+    .inventory-table tbody tr:hover {
+      background: var(--surface2);
+    }
+
+    .inventory-table td {
+      padding: 14px 18px;
+      vertical-align: middle;
+    }
+
+    .item-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .item-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+      background: rgba(108,92,231,0.2);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 24px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-available   { background: rgba(0,210,160,0.12); color: var(--green); }
+    .status-used        { background: rgba(77,171,247,0.12); color: var(--blue); }
+    .status-installed   { background: rgba(177,151,252,0.12); color: var(--purple); }
+    .status-reserved    { background: rgba(255,159,67,0.12); color: var(--orange); }
+    .status-defective   { background: rgba(255,107,107,0.12); color: var(--red); }
+    .status-short       { background: rgba(255,212,59,0.15); color: var(--yellow); }
+
+    .qty-warning {
+      color: var(--yellow);
+      font-weight: 800;
+      animation: softPulse 1.8s infinite;
+    }
+
+    @keyframes softPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.75; text-shadow: 0 0 2px rgba(255,212,59,0.5); }
+    }
+
+    .empty-row td {
+      text-align: center;
+      padding: 48px 20px;
+      color: var(--text3);
+      font-style: italic;
+    }
+
+    .loading-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15,17,25,0.75);
+      backdrop-filter: blur(3px);
+      z-index: 60;
+      border-radius: var(--radius);
+    }
+
+    .spinner {
+      width: 44px;
+      height: 44px;
+      border: 4px solid rgba(108,92,231,0.2);
+      border-left-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .hidden {
+      display: none;
+    }
+
+    .table-wrapper::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .table-wrapper::-webkit-scrollbar-track {
+      background: var(--surface2);
+      border-radius: 10px;
+    }
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: var(--text3);
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-wrapper">
+  <main class="main">
+    <header class="topbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input type="text" id="globalSearch" placeholder="Search by item name or serial...">
+      </div>
+    </header>
+
+    <div class="content">
+      <div>
+        <h1 class="page-title">📊 Inventory Dashboard</h1>
+        <p class="page-subtitle">Click any category card to view items — single table view, filter by status or search</p>
+      </div>
+
+      <!-- Category filter buttons (stats cards) -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Single unified items table -->
+      <div class="unified-table-container" id="tableContainer">
+        <div class="table-header">
+          <h3>
+            <span>📋 Current inventory</span>
+            <span class="category-badge" id="activeCategoryLabel">All Items</span>
+          </h3>
+          <span id="itemCountDisplay" style="font-size:12px; color:var(--text3);"></span>
+        </div>
+        <div class="table-wrapper" id="tableWrapper">
+          <table class="inventory-table" id="inventoryTable">
+            <thead>
+              <tr><th>Item name</th><th>Serial / number</th><th>Quantity</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="4" style="text-align:center; padding:40px;">Loading inventory...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ---------- INVENTORY DATA (demo + realistic) ----------
+  let inventoryItems = [];
+  let activeFilter = 'all';        // 'all', 'available', 'used', 'installed', 'reserved', 'defective', 'short'
+  
+  // Helper to generate rich demo inventory (80+ items)
+  function generateDemoInventory() {
+    const statusList = ['available', 'used', 'installed', 'reserved', 'defective', 'short'];
+    const productNames = [
+      "Wireless Performance Mouse", "Mechanical RGB Keyboard", "Thunderbolt 4 Dock", "27\" 4K Monitor", "Laptop Ergonomic Stand",
+      "Active Noise Cancelling Headphones", "4K Webcam", "NVMe M.2 SSD 2TB", "GaN 100W Charger", "Premium Desk Mat",
+      "HDMI 2.1 Ultra High Speed Cable", "Studio Condenser Microphone", "Portable SSD 1TB", "Bluetooth 5.3 Adapter", 
+      "Graphics Drawing Tablet", "Smart Speaker", "Wireless Presenter Remote", "Universal Docking Station"
+    ];
+    const items = [];
+    let id = 1;
+    // generate ~76 items to show rich data
+    for (let i = 0; i < 76; i++) {
+      let status = statusList[i % statusList.length];
+      let qty = Math.floor(Math.random() * 42) + 1;
+      if (status === 'short') qty = Math.floor(Math.random() * 6) + 1;
+      if (status === 'defective') qty = Math.floor(Math.random() * 3) + 1;
+      const product = productNames[i % productNames.length];
+      const variant = Math.floor(i / 12) + 1;
+      const name = `${product} ${variant > 1 ? `Elite v${variant}` : ''}`.trim();
+      const serial = `SN-${String(4000 + i).slice(-4)}-${String.fromCharCode(65 + (i % 26))}`;
+      items.push({
+        id: id++,
+        name: name,
+        number: serial,
+        quantity: qty,
+        status: status,
+        displayStatus: status,
+        isShort: (status === 'short' && qty < 5) || (status !== 'short' && qty === 1 && i % 11 === 0)
+      });
+    }
+    // handcrafted precise examples
+    items.push({ id: 201, name: "Ergonomic Executive Chair", number: "CHAIR-ERGOLUX", quantity: 2, status: "short", displayStatus: "short", isShort: true });
+    items.push({ id: 202, name: "Wireless Presenter Pro", number: "PR-ADVANCED", quantity: 18, status: "available", displayStatus: "available", isShort: false });
+    items.push({ id: 203, name: "Cracked LCD Service Unit", number: "LCD-DEF-09", quantity: 3, status: "defective", displayStatus: "defective", isShort: false });
+    items.push({ id: 204, name: "Conference Omnidirectional Mic", number: "MIC-ARRAY", quantity: 5, status: "reserved", displayStatus: "reserved", isShort: false });
+    items.push({ id: 205, name: "Edge Router X", number: "ROUT-ERX", quantity: 1, status: "used", displayStatus: "used", isShort: false });
+    items.push({ id: 206, name: "Smart Bulb Kit", number: "LIGHT-STRIP", quantity: 26, status: "installed", displayStatus: "installed", isShort: false });
+    return items;
+  }
+
+  // fetch or fallback
+  async function loadInventoryData() {
+    const spinner = document.getElementById('loadingSpinner');
+    // we don't have spinner in this version but we can show loading text
+    const tbody = document.getElementById('tableBody');
+    if(tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:40px;"><div class="spinner" style="margin:0 auto;"></div></td></tr>';
+    try {
+      const res = await fetch('/api/items');
+      if (!res.ok) throw new Error('API not available');
+      const data = await res.json();
+      inventoryItems = Array.isArray(data) && data.length ? data : generateDemoInventory();
+    } catch (err) {
+      console.warn("Using demo inventory data");
+      inventoryItems = generateDemoInventory();
+    }
+    // after data loaded, render everything
+    renderStatsAndTable();
+  }
+
+  // helper: get stats counts
+  function getCategoryStats() {
+    const counts = {
+      all: inventoryItems.length,
+      available: 0,
+      used: 0,
+      installed: 0,
+      reserved: 0,
+      defective: 0,
+      short: 0
+    };
+    inventoryItems.forEach(item => {
+      const st = item.displayStatus || item.status;
+      if (counts[st] !== undefined) counts[st]++;
+    });
+    return counts;
+  }
+
+  // get icon SVG
+  function getCategoryIcon(iconType) {
+    const icons = {
+      all: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="12" y2="17"/></svg>`,
+      available: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>`,
+      used: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>`,
+      installed: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+      reserved: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>`,
+      defective: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+      short: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`
+    };
+    return icons[iconType] || icons.all;
+  }
+
+  function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+
+  // render stats cards (filter buttons)
+  function renderStatsCards() {
+    const stats = getCategoryStats();
+    const statsConfig = [
+      { key: 'all', label: 'All Items', color: '#6c5ce7', icon: 'all', count: stats.all },
+      { key: 'available', label: 'Available', color: 'var(--green)', icon: 'available', count: stats.available },
+      { key: 'used', label: 'In Use', color: 'var(--blue)', icon: 'used', count: stats.used },
+      { key: 'installed', label: 'Installed', color: 'var(--purple)', icon: 'installed', count: stats.installed },
+      { key: 'reserved', label: 'Reserved', color: 'var(--orange)', icon: 'reserved', count: stats.reserved },
+      { key: 'defective', label: 'Defective', color: 'var(--red)', icon: 'defective', count: stats.defective },
+      { key: 'short', label: 'Low Stock', color: 'var(--yellow)', icon: 'short', count: stats.short }
+    ];
+    const grid = document.getElementById('statsGrid');
+    grid.innerHTML = statsConfig.map(cfg => `
+      <div class="stat-card ${activeFilter === cfg.key ? 'active-section' : ''}" data-filter-key="${cfg.key}">
+        <div class="stat-icon" style="background:${cfg.color}22;color:${cfg.color}">
+          ${getCategoryIcon(cfg.icon)}
+        </div>
+        <div class="stat-value" style="color:${cfg.color}">${cfg.count}</div>
+        <div class="stat-label">${cfg.label}</div>
+      </div>
+    `).join('');
+    // attach click handlers to each stat-card
+    document.querySelectorAll('.stat-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        const filterKey = card.getAttribute('data-filter-key');
+        if (filterKey) {
+          activeFilter = filterKey;
+          renderStatsCards();       // re-render to update active state
+          renderInventoryTable();   // update table based on active filter + search
+        }
+      });
+    });
+  }
+
+  // get filtered items based on activeFilter + search input
+  function getFilteredItems() {
+    const searchTerm = document.getElementById('globalSearch')?.value.toLowerCase().trim() || '';
+    let filtered = [...inventoryItems];
+    // filter by status category
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(item => (item.displayStatus || item.status) === activeFilter);
+    }
+    // apply search (name or serial)
+    if (searchTerm !== '') {
+      filtered = filtered.filter(item => 
+        item.name.toLowerCase().includes(searchTerm) || 
+        (item.number && item.number.toLowerCase().includes(searchTerm))
+      );
+    }
+    return filtered;
+  }
+
+  // update the single table body
+  function renderInventoryTable() {
+    const filteredItems = getFilteredItems();
+    const tbody = document.getElementById('tableBody');
+    const activeCategoryLabel = document.getElementById('activeCategoryLabel');
+    const itemCountSpan = document.getElementById('itemCountDisplay');
+    
+    // update category badge text
+    let categoryName = '';
+    switch(activeFilter) {
+      case 'all': categoryName = 'All Items'; break;
+      case 'available': categoryName = 'Available'; break;
+      case 'used': categoryName = 'In Use'; break;
+      case 'installed': categoryName = 'Installed'; break;
+      case 'reserved': categoryName = 'Reserved'; break;
+      case 'defective': categoryName = 'Defective'; break;
+      case 'short': categoryName = 'Low Stock'; break;
+      default: categoryName = 'All Items';
+    }
+    if (activeCategoryLabel) activeCategoryLabel.innerText = categoryName;
+    if (itemCountSpan) itemCountSpan.innerText = `${filteredItems.length} item(s)`;
+    
+    if (filteredItems.length === 0) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="4">✨ No items match the current filter or search. Try another category ✨</td></tr>`;
+      return;
+    }
+    
+    let rowsHtml = '';
+    for (let item of filteredItems) {
+      const statusKey = item.displayStatus || item.status;
+      let statusColorClass = '';
+      if (statusKey === 'available') statusColorClass = 'status-available';
+      else if (statusKey === 'used') statusColorClass = 'status-used';
+      else if (statusKey === 'installed') statusColorClass = 'status-installed';
+      else if (statusKey === 'reserved') statusColorClass = 'status-reserved';
+      else if (statusKey === 'defective') statusColorClass = 'status-defective';
+      else if (statusKey === 'short') statusColorClass = 'status-short';
+      else statusColorClass = 'status-available';
+      
+      const warningClass = (item.isShort || (statusKey === 'short' && item.quantity < 5)) ? 'qty-warning' : '';
+      const qtyDisplay = `${item.isShort ? '⚠ ' : ''}${item.quantity}`;
+      
+      rowsHtml += `
+        <tr>
+          <td>
+            <div class="item-name-cell">
+              <div class="item-avatar" style="background:rgba(108,92,231,0.2);">
+                ${escapeHtml(item.name.charAt(0).toUpperCase())}
+              </div>
+              <strong>${escapeHtml(item.name)}</strong>
+            </div>
+          </td>
+          <td>${escapeHtml(item.number || '—')}</td>
+          <td><span class="${warningClass}">${escapeHtml(qtyDisplay)}</span></td>
+          <td><span class="status-badge ${statusColorClass}">● ${capitalize(statusKey)}</span></td>
+        </tr>
+      `;
+    }
+    tbody.innerHTML = rowsHtml;
+  }
+  
+  // global search listener + re-trigger table update
+  function bindSearchEvents() {
+    const searchInput = document.getElementById('globalSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        renderInventoryTable();   // just update table, keep current active filter
+      });
+    }
+  }
+  
+  // full render after data load
+  function renderStatsAndTable() {
+    renderStatsCards();       // builds filter buttons
+    renderInventoryTable();   // builds initial table (all items)
+    bindSearchEvents();
+  }
+  
+  // fallback if api fetch slow, but loadInventoryData calls render
+  async function initApp() {
+    await loadInventoryData();
+  }
+  
+  // start app
+  initApp();
+</script>
+</body>
+</html>
