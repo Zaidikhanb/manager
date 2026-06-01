@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockFlow · Wallet Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Chart.js CDN for trend chart -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="app-wrapper">
+  <main class="main" style="width:100%;">
+    <header class="topbar">
+      <div class="search-wrap" style="opacity:0.5; pointer-events:none;">
+        <!-- Placeholder to keep layout balanced -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Wallet view" disabled>
+      </div>
+      <div class="nav-links">
+        <a href="admin.html" class="btn btn-secondary">📦 Inventory Admin</a>
+        <a href="viewer.html" class="btn btn-secondary">👁️ Viewer</a>
+      </div>
+    </header>
+
+    <div class="content wallet-dashboard">
+      <div>
+        <h1 class="page-title">💰 Wallet Dashboard</h1>
+        <p class="page-subtitle">Track all financial transactions — Pakistani Rupees (PKR)</p>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="wallet-stats">
+        <div class="stat-card balance-card" id="balanceCard">
+          <div class="stat-icon">💵</div>
+          <div class="stat-label">Current Balance</div>
+          <div class="stat-value-large" id="walletBalance">0 PKR</div>
+          <div class="stat-trend" id="balanceTrend"></div>
+        </div>
+        <div class="stat-card received-card">
+          <div class="stat-icon">📥</div>
+          <div class="stat-label">Total Received</div>
+          <div class="stat-value" id="totalReceived">0 PKR</div>
+        </div>
+        <div class="stat-card used-card">
+          <div class="stat-icon">📤</div>
+          <div class="stat-label">Total Used</div>
+          <div class="stat-value" id="totalUsed">0 PKR</div>
+        </div>
+      </div>
+
+      <!-- Chart Section -->
+      <div class="chart-container">
+        <h3>Balance Trend (Last 10 transactions)</h3>
+        <canvas id="balanceChart" width="800" height="300" style="max-width:100%; height:auto; background:var(--surface); border-radius:var(--radius); padding:16px;"></canvas>
+      </div>
+
+      <!-- Transaction History -->
+      <div class="transactions-section">
+        <h3>Transaction History</h3>
+        <div style="overflow-x:auto;">
+          <table class="section-table" id="transactionsTable">
+            <thead>
+              <tr><th>Date & Time</th><th>Type</th><th>Party / Purpose</th><th>Amount (PKR)</th></tr>
+            </thead>
+            <tbody id="transactionsBody">
+              <tr><td colspan="4" style="text-align:center;">Loading transactions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="wallet.js"></script>
+</body>
+</html>
