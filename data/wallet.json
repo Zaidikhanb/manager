@@ -2,6 +2,13 @@
   "balance": 0,
   "transactions": [
     {
+      "id": "mpvgpawmar7pq",
+      "timestamp": "2026-06-01T17:07:54.358Z",
+      "type": "used",
+      "party": "COMPUTER ACCESSORIES",
+      "amount": 2200
+    },
+    {
       "id": "mpvgopokcg7cq",
       "timestamp": "2026-06-01T17:07:26.852Z",
       "type": "used",
